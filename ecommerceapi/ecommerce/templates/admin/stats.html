@@ -1,0 +1,201 @@
+{% extends 'admin/base_site.html' %}
+
+{% block content %}
+<style>
+    {% include 'admin/css/style.css' %}
+</style>
+
+<section class="headerStats">
+    <div class="card">
+      <p class="cardHeading">{{ total_buyer }}</p>
+      <p class="cardDescription">Người tiêu dùng</p>
+    </div>
+
+    <div class="card">
+      <p class="cardHeading">{{ total_order_pending }}</p>
+      <p class="cardDescription">Đơn hàng đang xử lý</p>
+    </div>
+
+    <div class="card">
+      <p class="cardHeading">{{ total_store }}</p>
+      <p class="cardDescription">Cửa Hàng</p>
+    </div>
+
+    <div class="card">
+      <p class="cardHeading">{{ total_product }}</p>
+      <p class="cardDescription">Sản Phẩm</p>
+    </div>
+
+    <div class="card">
+      <p class="cardHeading">{{ total_revenue }} VND</p>
+      <p class="cardDescription">Doanh Thu</p>
+    </div>
+</section>
+<section class="stats">
+    <div class="time">
+        <h1> THỐNG KÊ HỆ THỐNG CHI TIẾT  </h1>
+        <form method="get" class="dateForm">
+            <span class="dateFormItem">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+            </span>
+            <span class="dateFormItem">
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+            </span>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <section class="charts">
+        <div class="chart">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="chart">
+            <canvas id="myChart1"></canvas>
+        </div>
+        <div class="chart">
+            <canvas id="myChart2"></canvas>
+        </div>
+    </section>
+</section>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let labels = [];
+    let data = [];
+
+    {% for c in top_10_stores_by_success_orders %}
+        labels.push('{{ c.store__name }}');
+        data.push({{ c.total_success_orders }});
+    {% endfor %}
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Đơn hàng',
+            data: data,
+            borderWidth: 1,
+            backgroundColor: '#6610f2',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+                display: true,
+                text: 'TOP 10 CỬA HÀNG CÓ NHIỀU ĐƠN HÀNG CÓ TRẠNG THÁI THÀNH CÔNG NHẤT',
+                font: {
+                    size: 20
+                }
+              }
+            },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+    });
+</script>
+<script>
+    let labels1 = [];
+    let data1 = [];
+
+    {% for c in total_revenue_by_day %}
+        var date = new Date('{{ c.day }}');
+        var day = date.getDate().toString().padStart(2, '0');
+        var month = (date.getMonth() + 1).toString().padStart(2, '0');
+        labels1.push(`${day}-${month}`);
+        data1.push({{ c.total_revenue }});
+
+    {% endfor %}
+
+    var ctx = document.getElementById('myChart1').getContext('2d');
+
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels1,
+          datasets: [{
+            label: 'Doanh Thu',
+            data: data1,
+            borderWidth: 1,
+            backgroundColor: 'rgba(5, 54, 77, 1)',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+                display: true,
+                text: 'TỔNG DOANH THU THEO NGÀY',
+                font: {
+                    size: 20
+                }
+              }
+            },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+    });
+</script>
+<script>
+    let labels2 = [];
+    let data2 = [];
+
+    {% for c in count_products_by_category %}
+        {% if c.total_product != 0 %}
+            labels2.push('{{ c.name }}');
+            data2.push({{ c.total_product }});
+        {% endif %}
+    {% endfor %}
+
+    var ctx = document.getElementById('myChart2').getContext('2d');
+
+    var myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels2,
+          datasets: [{
+            label: 'Số Lượng Sản Phẩm',
+            data: data2,
+            borderWidth: 1,
+            backgroundColor: [
+                'rgb(21, 75, 182)',
+                'rgb(244, 110, 103)',
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            title: {
+                display: true,
+                text: 'DANH MỤC SẢN PHẨM TRÊN HỆ THỐNG',
+                font: {
+                    size: 20
+                }
+              }
+            },
+        }
+    });
+</script>
+{% endblock %}
+
